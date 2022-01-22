@@ -1,34 +1,7 @@
-import 'dart:developer';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-class AuthService {
-  final FirebaseAuth _firebaseAuth;
-
-  AuthService(this._firebaseAuth);
-
-  Stream<User?> get authStateChanges => _firebaseAuth.idTokenChanges();
-
-  Future<void> signOut() async {
-    await _firebaseAuth.signOut();
-  }
-
-  Future<bool> signIn() async {
-    try {
-      await _firebaseAuth.signInAnonymously();
-      return true;
-    } on FirebaseAuthException catch (e) {
-      log(e.message.toString());
-      return false;
-    } catch (e) {
-      log(e.toString());
-      return false;
-    }
-  }
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,21 +14,30 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider<AuthService>(
-          create: (_) => AuthService(FirebaseAuth.instance),
-        ),
-      ],
-      child: MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        home: const AuthWrapper(),
+    return Provider<AuthService>(
+      create: (_) => AuthService(FirebaseAuth.instance),
+      child: const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Firebase Auth',
+        home: AuthWrapper(),
       ),
     );
+  }
+}
+
+class AuthService {
+  final FirebaseAuth _firebaseAuth;
+
+  AuthService(this._firebaseAuth);
+
+  Stream<User?> get authStateChanges => _firebaseAuth.idTokenChanges();
+
+  void signOut() async {
+    await _firebaseAuth.signOut();
+  }
+
+  void signIn() async {
+    await _firebaseAuth.signInAnonymously();
   }
 }
 
