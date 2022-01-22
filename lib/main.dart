@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -19,10 +21,10 @@ class AuthService {
       await _firebaseAuth.signInAnonymously();
       return true;
     } on FirebaseAuthException catch (e) {
-      print(e.message);
+      log(e.message.toString());
       return false;
     } catch (e) {
-      print(e.toString());
+      log(e.toString());
       return false;
     }
   }
@@ -44,10 +46,6 @@ class MyApp extends StatelessWidget {
         Provider<AuthService>(
           create: (_) => AuthService(FirebaseAuth.instance),
         ),
-        StreamProvider(
-          initialData: null,
-          create: (context) => context.read<AuthService>().authStateChanges,
-        )
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
@@ -66,12 +64,15 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firebaseUser = context.watch<User?>();
-
-    if (firebaseUser != null) {
-      return const HomePage();
-    }
-    return const SignInPage();
+    return StreamBuilder(
+      stream: context.read<AuthService>().authStateChanges,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return const HomePage();
+        }
+        return const SignInPage();
+      },
+    );
   }
 }
 
